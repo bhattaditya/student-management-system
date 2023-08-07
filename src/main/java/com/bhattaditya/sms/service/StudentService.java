@@ -3,16 +3,13 @@ package com.bhattaditya.sms.service;
 import com.bhattaditya.sms.entity.Course;
 import com.bhattaditya.sms.entity.Enrollment;
 import com.bhattaditya.sms.entity.Student;
-import com.bhattaditya.sms.repository.CourseRepository;
 import com.bhattaditya.sms.repository.EnrollmentRepository;
 import com.bhattaditya.sms.repository.StudentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class StudentService {
@@ -21,7 +18,7 @@ public class StudentService {
     StudentRepository studentRepository;
 
     @Autowired
-    CourseRepository courseRepository;
+    CourseService courseService;
 
     @Autowired
     EnrollmentRepository enrollmentRepository;
@@ -64,10 +61,10 @@ public class StudentService {
 
     public Enrollment enrollStudent(long courseId, Student student) {
 
-        Course course = courseRepository.findById(courseId).orElseThrow(()-> new IllegalStateException("Course not found"));
+        Course course = courseService.getCourse(courseId);
 
         if (studentRepository.existsByEmail(student.getEmail())) {
-            throw new IllegalStateException("Student already exists...");
+            throw new IllegalStateException("Email already exists...try another");
         }
         Enrollment enrollment = new Enrollment();
         enrollment.setStudent(student);
@@ -78,4 +75,29 @@ public class StudentService {
         return enrollment;
     }
 
+    public Enrollment updateCourse(long enrollId, long courseId, long studentId) {
+
+        Optional<Enrollment> enrollment = enrollmentRepository.findById(enrollId);
+
+        if (enrollment.isEmpty()) {
+            throw new IllegalStateException("No enrollment id exists");
+        }
+
+        Enrollment obj = enrollment.get();
+        Student student = getStudent(studentId);
+        Course course =  courseService.getCourse(courseId);
+        String newCourseName = course.getCourseName();
+
+        // check is already exists
+        if (obj.getCourse().getId().equals(course.getId())) {
+            throw new IllegalStateException("Course already assigned");
+        }
+
+        obj.setCourse(course);
+        enrollmentRepository.save(obj);
+
+        System.out.println(obj);
+        return obj;
+
+    }
 }

@@ -63,12 +63,9 @@ public class StudentController {
         return studentService.enrollStudent(courseId, student);
     }
 
-    // will implement later
-    @PutMapping(value = "updateCourse/{courseId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Enrollment updateCourse(@PathVariable("courseId") long courseId, @PathVariable("studentId") long studentId) {
-        Student student = getStudent(studentId);
-        Course course =  courseService.getCourse(courseId);
+    @PutMapping(value = "enroll/{enrollId}/course/{courseId}/student/{studentId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Enrollment updateCourse(@PathVariable("enrollId") long enrollId, @PathVariable("courseId") long courseId, @PathVariable("studentId") long studentId) {
 
-        return null;
+        return studentService.updateCourse(enrollId, courseId, studentId);
     }
 }
