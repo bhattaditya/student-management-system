@@ -1,20 +1,18 @@
 package com.bhattaditya.sms.controller;
 
+import com.bhattaditya.sms.constants.SMSConstants;
 import com.bhattaditya.sms.entity.Course;
 import com.bhattaditya.sms.entity.Enrollment;
 import com.bhattaditya.sms.entity.Student;
-import com.bhattaditya.sms.service.CourseService;
 import com.bhattaditya.sms.service.StudentService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/students")
@@ -24,9 +22,6 @@ public class StudentController {
 
     @Autowired
     StudentService studentService;
-
-    @Autowired
-    CourseService courseService;
 
     @GetMapping(value = "/", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<Student> getStudents() {
@@ -42,7 +37,7 @@ public class StudentController {
         return studentService.getStudent(studentId);
     }
 
-    @GetMapping(value = "/enrolledStudent/{subject}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/enrolledStudents/{subject}", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<Enrollment> enrolledStudents(@PathVariable("subject") String subject) {
         LOGGER.info("Enrolled students...");
 
@@ -65,7 +60,24 @@ public class StudentController {
 
     @PutMapping(value = "enroll/{enrollId}/course/{courseId}/student/{studentId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public Enrollment updateCourse(@PathVariable("enrollId") long enrollId, @PathVariable("courseId") long courseId, @PathVariable("studentId") long studentId) {
+        LOGGER.info("Updating enrolled course...");
 
         return studentService.updateCourse(enrollId, courseId, studentId);
+    }
+
+    @DeleteMapping(value = "/{studentId}")
+    public String removeStudent(@PathVariable("studentId") long studentId) {
+        LOGGER.info("Removing student...");
+        studentService.removeStudent(studentId);
+
+        return SMSConstants.REMOVED_STUDENT;
+    }
+
+    @DeleteMapping(value = "/withdrawCourse/{enrollmentId}")
+    public String withdrawName(@PathVariable("enrollmentId") long enrollmentId) {
+        LOGGER.info("withdraw enroll course...");
+        studentService.withdrawName(enrollmentId);
+
+        return SMSConstants.UPDATED_COURSE;
     }
 }

@@ -24,7 +24,18 @@ public class StudentService {
     EnrollmentRepository enrollmentRepository;
 
     public List<Student> getStudents() {
-        return studentRepository.findAll();
+        List<Student> students = studentRepository.findAll();
+
+//        List<StudentDTO> studentDTOS = students.stream().map(student -> {
+//            StudentDTO studentDTO = new StudentDTO();
+//            studentDTO.setId(student.getId());
+//            studentDTO.setCity(student.getCity());
+//
+//            return  studentDTO;
+//
+//        }).toList();
+
+        return students;
     }
 
     public Student getStudent(long studentId) {
@@ -99,5 +110,28 @@ public class StudentService {
         System.out.println(obj);
         return obj;
 
+    }
+
+    public void removeStudent(long studentId) {
+        Student studentToDelete = getStudent(studentId);
+        List<Enrollment> enrolledStudents = enrollmentRepository.findAll();
+
+        List<Enrollment> enrollmentsToDelete = enrolledStudents.stream()
+                .filter(obj -> obj.getStudent().getId().equals(studentToDelete.getId()))
+                .toList();
+
+        for (Enrollment enrollment : enrollmentsToDelete) {
+            enrollmentRepository.delete(enrollment);
+        }
+        studentRepository.delete(studentToDelete);
+
+        // also on delete cascade can be used
+    }
+
+    public void withdrawName(long enrollmentId) {
+        Enrollment enrollment = enrollmentRepository.findById(enrollmentId)
+                .orElseThrow(()-> new IllegalStateException("enrollment id does not exists"));
+
+        enrollmentRepository.delete(enrollment);
     }
 }
