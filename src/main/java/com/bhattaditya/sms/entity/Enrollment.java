@@ -23,6 +23,6 @@ public class Enrollment {
     @JoinColumn(name = "course_id")
     private Course course;
 
-    // Other fields, such as enrollment date, grades, etc., can be added here
+
 }
 

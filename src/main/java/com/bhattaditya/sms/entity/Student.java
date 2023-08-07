@@ -3,6 +3,7 @@ package com.bhattaditya.sms.entity;
 import lombok.*;
 
 import javax.persistence.*;
+import javax.validation.constraints.Email;
 
 @Entity
 @Table(name = "students")
@@ -27,8 +28,9 @@ public class Student {
     @Column(nullable = false)
     private char gender;
 
-    @Column(nullable = true)
-    private String email;
+    @Email
+    @Column(unique = true, nullable = true)
+    private String email = "";
 
     @Column(nullable = false)
     private String city;

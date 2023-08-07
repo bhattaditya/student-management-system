@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+// TEST course controller
+
 @RestController
 @RequestMapping("/courses")
 public class CourseController {

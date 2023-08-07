@@ -16,4 +16,9 @@ public class Course {
     private Long id;
 
     private String courseName;
+
+    public Course(Enrollment enrollment) {
+        this.id = enrollment.getCourse().getId();
+        this.courseName = enrollment.getCourse().getCourseName();
+    }
 }
