@@ -37,11 +37,11 @@ public class StudentController {
         return studentService.getStudent(studentId);
     }
 
-    @GetMapping(value = "/enrolledStudents/{subject}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<Enrollment> enrolledStudents(@PathVariable("subject") String subject) {
+    @GetMapping(value = "/enrolledStudents/{courseId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<Enrollment> enrolledStudents(@PathVariable("courseId") long courseId) {
         LOGGER.info("Enrolled students...");
 
-        return studentService.enrolledStudents(subject);
+        return studentService.enrolledStudents(courseId);
     }
 
     @GetMapping(value = "/courses/{email}", produces = MediaType.APPLICATION_JSON_VALUE)
