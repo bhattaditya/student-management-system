@@ -3,7 +3,8 @@ package com.bhattaditya.sms.service;
 import com.bhattaditya.sms.entity.Course;
 import com.bhattaditya.sms.entity.Enrollment;
 import com.bhattaditya.sms.entity.Student;
-import com.bhattaditya.sms.repository.EnrollmentRepository;
+import com.bhattaditya.sms.exception.ResourceNotFound;
+import com.bhattaditya.sms.exception.SMSRuntimeException;
 import com.bhattaditya.sms.repository.StudentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,7 +22,7 @@ public class StudentService {
     CourseService courseService;
 
     @Autowired
-    EnrollmentRepository enrollmentRepository;
+    EnrollmentService enrollmentService;
 
     public List<Student> getStudents() {
         List<Student> students = studentRepository.findAll();
@@ -39,26 +40,27 @@ public class StudentService {
     }
 
     public Student getStudent(long studentId) {
-        return studentRepository.findById(studentId).orElseThrow(() -> new IllegalStateException("Student Not found"));
+        return studentRepository.findById(studentId).orElseThrow(() -> new ResourceNotFound("Student", "Id", studentId));
     }
 
-    public List<Enrollment> enrolledStudents(String subject) {
-        List<Enrollment> enrolledStudents = enrollmentRepository.findAll();
+    public List<Enrollment> enrolledStudents(long courseId) {
+        String subject = courseService.getCourse(courseId).getCourseName();
+        List<Enrollment> enrolledStudents = enrollmentService.enrolledStudents();
 
         List<Enrollment> filteredEnrolledStudents =  enrolledStudents.stream()
                 .filter(sub -> sub.getCourse().getCourseName().equalsIgnoreCase(subject))
                 .toList();
 
         if (filteredEnrolledStudents.isEmpty()) {
-            throw new IllegalStateException("No enrolled student or subject ");
+            throw new SMSRuntimeException("No enrolled student");
         }
 
         return filteredEnrolledStudents;
     }
 
     public List<Course> studentCourses(String email) {
-        Student student = studentRepository.findByEmail(email).orElseThrow(() -> new IllegalStateException("Student with " + email  + " not found"));
-        List<Enrollment> enrolledStudents = enrollmentRepository.findAll();
+        Student student = studentRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFound("Student ", "email", email));
+        List<Enrollment> enrolledStudents = enrollmentService.enrolledStudents();
 
         List<Enrollment> filteredList = enrolledStudents.stream()
                 .filter(obj -> obj.getStudent().getEmail().equalsIgnoreCase(email))
@@ -75,23 +77,24 @@ public class StudentService {
         Course course = courseService.getCourse(courseId);
 
         if (studentRepository.existsByEmail(student.getEmail())) {
-            throw new IllegalStateException("Email already exists...try another");
+            throw new SMSRuntimeException("Email already exists..try another");
         }
+
         Enrollment enrollment = new Enrollment();
         enrollment.setStudent(student);
         enrollment.setCourse(course);
         studentRepository.save(student);
-        enrollmentRepository.save(enrollment);
+        enrollmentService.create(enrollment);
 
         return enrollment;
     }
 
     public Enrollment updateCourse(long enrollId, long courseId, long studentId) {
 
-        Optional<Enrollment> enrollment = enrollmentRepository.findById(enrollId);
+        Optional<Enrollment> enrollment = enrollmentService.getEnrolledStudent(enrollId);
 
         if (enrollment.isEmpty()) {
-            throw new IllegalStateException("No enrollment id exists");
+            throw new SMSRuntimeException("No enrolled id exists");
         }
 
         Enrollment obj = enrollment.get();
@@ -101,11 +104,11 @@ public class StudentService {
 
         // check is already exists
         if (obj.getCourse().getId().equals(course.getId())) {
-            throw new IllegalStateException("Course already assigned");
+            throw new SMSRuntimeException("Course already assigned");
         }
 
         obj.setCourse(course);
-        enrollmentRepository.save(obj);
+        enrollmentService.create(obj);
 
         System.out.println(obj);
         return obj;
@@ -114,24 +117,22 @@ public class StudentService {
 
     public void removeStudent(long studentId) {
         Student studentToDelete = getStudent(studentId);
-        List<Enrollment> enrolledStudents = enrollmentRepository.findAll();
+        List<Enrollment> enrolledStudents = enrollmentService.enrolledStudents();
 
         List<Enrollment> enrollmentsToDelete = enrolledStudents.stream()
                 .filter(obj -> obj.getStudent().getId().equals(studentToDelete.getId()))
                 .toList();
 
-        for (Enrollment enrollment : enrollmentsToDelete) {
-            enrollmentRepository.delete(enrollment);
-        }
+        enrollmentService.removeEnrollments(enrollmentsToDelete);
         studentRepository.delete(studentToDelete);
 
         // also on delete cascade can be used
     }
 
     public void withdrawName(long enrollmentId) {
-        Enrollment enrollment = enrollmentRepository.findById(enrollmentId)
-                .orElseThrow(()-> new IllegalStateException("enrollment id does not exists"));
+        Enrollment enrollment = enrollmentService.getEnrolledStudent(enrollmentId)
+                .orElseThrow(()-> new SMSRuntimeException("enrollment id does not exists"));
 
-        enrollmentRepository.delete(enrollment);
+        enrollmentService.removeEnrollment(enrollment);
     }
 }

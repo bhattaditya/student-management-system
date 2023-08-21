@@ -1,6 +1,7 @@
 package com.bhattaditya.sms.service;
 
 import com.bhattaditya.sms.entity.Course;
+import com.bhattaditya.sms.exception.ResourceNotFound;
 import com.bhattaditya.sms.repository.CourseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ public class CourseService {
     }
 
     public Course getCourse(long courseId) {
-        return courseRepository.findById(courseId).orElseThrow(() -> new IllegalStateException("Course not found"));
+        return courseRepository.findById(courseId).
+                orElseThrow(() -> new ResourceNotFound("Course", "ID", courseId));
     }
 }
